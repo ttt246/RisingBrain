@@ -38,11 +38,12 @@ jobs:
         uses: actions/checkout@v3
       - name: deploy develop
         uses: akhileshns/heroku-deploy@v3.12.12
-        with:
+        env:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: smartphone
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
         run: |
-          git remote add heroku https://heroku:${HEROKU_API_KEY}@git.heroku.com/${heroku_app_name}.git
+          git remote add heroku https://heroku:${heroku_api_key}@git.heroku.com/${heroku_app_name}.git
           git config --local http.extraheader "Heroku-Space: ttt246"
           git push heroku develop:master --force
 

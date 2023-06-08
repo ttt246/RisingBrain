@@ -37,7 +37,6 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: deploy develop
-        uses: akhileshns/heroku-deploy@v3.12.12
         env:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: smartphone

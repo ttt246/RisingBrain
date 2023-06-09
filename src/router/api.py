@@ -43,34 +43,31 @@ def construct_blueprint_api():
         {"message": "this is test message", "token": "test_token", "uuid": "test_uuid"}
     )"""
 
-    @api.route("/sendNotification", methods=["POST"])
-    def send_notification():
+    @api.route("/send", methods=["POST"])
+    def send_msg():
         data = json.loads(request.get_data())
         query = data["message"]
         token = data["token"]
         uuid = data["uuid"]
 
-        result = getCompletion(query=query, uuid=uuid)
+        result = eval(getCompletion(query=query, uuid=uuid))
 
         # check contact querying
         try:
-            result_json = eval(result)
-            if result_json["program"] == ProgramType.CONTACT:
+            if result["program"] == ProgramType.CONTACT:
                 # querying contacts to getting its expected results
                 contacts_results = contacts_service.query_contacts(
-                    uuid=uuid, search=result_json["content"]
+                    uuid=uuid, search=result["content"]
                 )
-                result_json["content"] = str(contacts_results)
-                result = str(result_json)
+                result["content"] = str(contacts_results)
         except Exception as e:
             logger.error(title="sendNotification", message=result)
 
-        notification = {"title": "alert", "content": result}
+        notification = {"title": "alert", "content": json.dumps(result)}
 
         state, value = send_message(notification, [token])
-        response = jsonify({"message": value, "result": result})
-        response.status_code = 200
-        return response
+
+        return assembler.to_response(200, value, result)
 
     """@generator.response(
         status_code=200, schema={"message": "message", "result": "test_result"}
@@ -97,9 +94,7 @@ def construct_blueprint_api():
         notification = {"title": "alert", "content": embed_result}
 
         state, value = send_message(notification, [token])
-        response = jsonify({"message": value, "result": result})
-        response.status_code = 200
-        return response
+        return assembler.to_response(200, value, result)
 
     """@generator.response(
         status_code=200, schema={"message": "message", "result": "test_result"}
@@ -137,19 +132,14 @@ def construct_blueprint_api():
 
         notification = {"title": "alert", "content": json.dumps(image_response)}
         state, value = send_message(notification, [token])
-        response = jsonify(
+        return assembler.to_response(
+            200,
+            value,
             {
-                "message": value,
-                "result": json.dumps(
-                    {
-                        "program": "image",
-                        "content": json.dumps(image_response),
-                    }
-                ),
-            }
+                "program": "image",
+                "content": image_response,
+            },
         )
-        response.status_code = 200
-        return response
 
     @api.route("/file/<string:filename>")
     def get_swagger_file(filename):
@@ -207,7 +197,7 @@ def construct_blueprint_api():
     @api.route("/feedback/<string:search>/<int:rating>")
     def get_feedback(search, rating):
         result = feedback_service.get(search, rating)
-        return assembler.to_response(200, "added successfully", json.dumps(result))
+        return assembler.to_response(200, "added successfully", result)
 
     """@generator.response(
         status_code=200, schema={"message": "message", "result": "test_result"}
@@ -219,7 +209,7 @@ def construct_blueprint_api():
         return assembler.to_response(
             200,
             "success",
-            json.dumps({"program": "help_command", "content": json.dumps(result)}),
+            {"program": "help_command", "content": result},
         )
 
     """@generator.request_body(
@@ -267,14 +257,10 @@ def construct_blueprint_api():
         return assembler.to_response(
             200,
             "added successfully",
-            json.dumps(
-                {
-                    "program": "agent",
-                    "message": json.dumps(
-                        assistant_reply.get_one_message_item().to_json()
-                    ),
-                }
-            ),
+            {
+                "program": "agent",
+                "message": assistant_reply.get_one_message_item().to_json(),
+            },
         )
 
     """@generator.request_body(

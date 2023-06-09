@@ -19,8 +19,7 @@ class Assembler:
     """mapping to http response"""
 
     def to_response(self, code, message, result) -> Any:
-        response = jsonify({"message": message, "result": result})
-        response.status_code = code
+        response = {"message": message, "result": result, "status_code": code}
         return response
 
     """mapping data to a collection of MessageModel"""

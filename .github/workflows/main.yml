@@ -42,7 +42,7 @@ jobs:
           heroku_app_name: smartphone
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
         run: |
-          git remote add heroku https://heroku:${heroku_api_key}@git.heroku.com/${heroku_app_name}.git
+          git remote add heroku https://heroku:${{ secrets.HEROKU_API_KEY }}@git.heroku.com/smartphone.git
           git config --local http.extraheader "Heroku-Space: ttt246"
           git push heroku develop:master --force
 
